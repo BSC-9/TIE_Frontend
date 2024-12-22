@@ -120,6 +120,14 @@ const Login = () => {
               Forgot password?
             </a>
           </div>
+          <div className="mt-1 text-center">
+            <a
+              onClick={() => navigate('/SignUp')}
+              className="text-md text-blue-600 hover:underline cursor-pointer"
+            >
+            No account yet? Sign up now!
+          </a>
+        </div>
         </div>
       </div>
 
