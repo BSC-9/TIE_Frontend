@@ -6,9 +6,6 @@ import TieLogo from '../images/TieLogo.png';
 const Login = () => {
   const [userid, setUserid] = useState('');
   const [password, setPassword] = useState('');
-  const [roleMessage, setRoleMessage] = useState('');
-  const [showPressButton, setShowPressButton] = useState(false);
-  const [showWelcomeSection, setShowWelcomeSection] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -35,8 +32,10 @@ const Login = () => {
       const data = await response.json();
       const token = data.token;
 
-      setShowWelcomeSection(true);
+      // Save token to localStorage
+      localStorage.setItem('authToken', token);
 
+      // Fetch welcome message
       const welcomeResponse = await fetch('http://localhost:3001/api/auth/welcome', {
         method: 'GET',
         headers: {
@@ -49,11 +48,14 @@ const Login = () => {
       }
 
       const welcomeData = await welcomeResponse.json();
-      setRoleMessage(welcomeData.message);
+      const roleMessage = welcomeData.message;
 
-      if (welcomeData.message === 'Welcome Admin') {
-        setShowPressButton(true);
-        navigate('/dashboard');
+      if (roleMessage === 'Welcome Admin') {
+        navigate('/AdminDashboard');
+      } else if (roleMessage === 'Welcome User') {
+        navigate('/UserDashboard');
+      } else {
+        throw new Error('Unknown role');
       }
     } catch (err) {
       setError(err.message || 'An unexpected error occurred');
@@ -122,32 +124,18 @@ const Login = () => {
           </div>
           <div className="mt-1 text-center">
             <a
-              onClick={() => navigate('/SignUp')}
+              onClick={() => navigate('/signup')}
               className="text-md text-blue-600 hover:underline cursor-pointer"
             >
-            No account yet? Sign up now!
-          </a>
-        </div>
+              No account yet? Sign up now!
+            </a>
+          </div>
         </div>
       </div>
 
       <div className="lg:w-1/2 w-full hidden lg:block">
         <img src={Hotelpic} alt="Hotel" className="w-full h-full object-cover" />
       </div>
-
-      {showWelcomeSection && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-100">
-          <h2 className="text-2xl font-bold">{roleMessage}</h2>
-          {showPressButton && (
-            <button
-              onClick={() => alert('You pressed the button!')}
-              className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-            >
-              Press Me
-            </button>
-          )}
-        </div>
-      )}
     </div>
   );
 };

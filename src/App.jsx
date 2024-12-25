@@ -1,24 +1,52 @@
 import React from 'react';
 import './index.css';
 import Login from './components/ui/login';  
-import Dashboard from './components/ui/Dashboard';
 import SignUp from './components/ui/Signup';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import UserList from './components/ui/UserList';
+import AdminDashboard from './components/ui/AdminDashboard';
+import UserDashboard from './components/ui/UserDashboard';
 
-function App() {
+const ProtectedRoute = ({ children }) => {
+  const isAuthenticated = !!localStorage.getItem('authToken'); // Example
+  return isAuthenticated ? children : <Navigate to="/login" />;
+};
+
+const App = () => {
   return (
-    <div>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/signup" element={<SignUp />} />
-          <Route path="/UserList" element={<UserList />} />
-        </Routes>
-      </BrowserRouter> 
-    </div>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Navigate to="/login" />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<SignUp />} />
+        <Route
+          path="/AdminDashboard"
+          element={
+            <ProtectedRoute>
+              <AdminDashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/UserDashboard"
+          element={
+            <ProtectedRoute>
+              <UserDashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/UserList"
+          element={
+            <ProtectedRoute>
+              <UserList />
+            </ProtectedRoute>
+          }
+        />
+        <Route path="*" element={<div>404 - Page Not Found</div>} />
+      </Routes>
+    </BrowserRouter>
   );
-}
+};
 
 export default App;

@@ -1,47 +1,87 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import TieLogo from '../images/TieLogo.png'; // Adjust the path as per your project structure
 
 const UserList = () => {
-  const initialUsers = [
-    { id: 1, name: 'John Doe', role: 'Admin' },
-    { id: 2, name: 'Jane Smith', role: 'User' },
-    { id: 3, name: 'Mark Wilson', role: 'Pending' },
-  ];
+  const [users, setUsers] = useState([]); // Ensure initial state is an array
+  const navigate = useNavigate(); // Initialize useNavigate
 
-  const [users, setUsers] = useState(initialUsers);
+  // Fetch user data from the API when the component mounts
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        // Retrieve token from localStorage
+        const token = localStorage.getItem('authToken');
 
-  const handlePromote = (id) => {
+        if (!token) {
+          console.log('No token found, redirecting to login...');
+          navigate('/login');
+          return;
+        }
+
+        const response = await fetch('http://localhost:3001/api/auth/users', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`, // Add token to the Authorization header
+          },
+        });
+
+        const data = await response.json();
+
+        // Check if data is an array before setting it
+        if (Array.isArray(data)) {
+          setUsers(data);
+        } else {
+          console.error('API response is not an array', data);
+        }
+      } catch (error) {
+        console.error('Error fetching users:', error);
+      }
+    };
+
+    fetchUsers();
+  }, [navigate]);
+
+  const handlePromote = (userid) => {
     setUsers((prevUsers) =>
       prevUsers.map((user) =>
-        user.id === id && user.role !== 'Admin'
-          ? { ...user, role: 'Admin' }
+        user.userid === userid && user.role !== 'admin'
+          ? { ...user, role: 'admin' }
           : user
       )
     );
   };
 
-  const handleDemote = (id) => {
+  const handleDemote = (userid) => {
     setUsers((prevUsers) =>
       prevUsers.map((user) =>
-        user.id === id && user.role !== 'User'
-          ? { ...user, role: 'User' }
+        user.userid === userid && user.role !== 'user'
+          ? { ...user, role: 'user' }
           : user
       )
     );
   };
 
-  const handleApprove = (id) => {
+  const handleApprove = (userid) => {
     setUsers((prevUsers) =>
       prevUsers.map((user) =>
-        user.id === id && user.role === 'Pending'
-          ? { ...user, role: 'User' }
+        user.userid === userid && user.role === 'pending'
+          ? { ...user, role: 'user' }
           : user
       )
     );
   };
 
-  const handleDelete = (id) => {
-    setUsers((prevUsers) => prevUsers.filter((user) => user.id !== id));
+  const handleDelete = (userid) => {
+    setUsers((prevUsers) => prevUsers.filter((user) => user.userid !== userid));
+  };
+
+  const handleLogout = () => {
+    // Remove the token from localStorage
+    localStorage.removeItem('authToken');
+    // Redirect to the login page
+    navigate('/login');
   };
 
   return (
@@ -53,13 +93,13 @@ const UserList = () => {
         </div>
         <div className="space-x-4">
           <button
-            onClick={() => console.log('Back')}
+            onClick={() => navigate('/AdminDashboard')} // Redirect to AdminDashboard
             className="bg-blue-700 text-white px-4 py-2 rounded-md hover:bg-blue-800"
           >
             Back
           </button>
           <button
-            onClick={() => console.log('Logout')}
+            onClick={handleLogout} // Handle logout
             className="bg-blue-700 text-white px-4 py-2 rounded-md hover:bg-blue-800"
           >
             Logout
@@ -74,51 +114,53 @@ const UserList = () => {
           <thead>
             <tr className="bg-blue-700 text-white">
               <th className="border border-gray-300 p-2">S.No</th>
-              <th className="border border-gray-300 p-2">Name</th>
+              <th className="border border-gray-300 p-2">User ID</th>
               <th className="border border-gray-300 p-2">Role</th>
               <th className="border border-gray-300 p-2">Actions</th>
             </tr>
           </thead>
           <tbody>
-            {users.map((user, index) => (
-              <tr key={user.id} className="text-center">
-                <td className="border border-gray-300 p-2">{index + 1}</td>
-                <td className="border border-gray-300 p-2">{user.name}</td>
-                <td className="border border-gray-300 p-2">{user.role}</td>
-                <td className="border border-gray-300 p-2 space-x-2">
-                  {user.role === 'User' && (
+            {/* Only map over users if it is an array */}
+            {Array.isArray(users) &&
+              users.map((user, index) => (
+                <tr key={user.userid} className="text-center">
+                  <td className="border border-gray-300 p-2">{index + 1}</td>
+                  <td className="border border-gray-300 p-2">{user.userid}</td>
+                  <td className="border border-gray-300 p-2">{user.role}</td>
+                  <td className="border border-gray-300 p-2 space-x-2">
+                    {user.role === 'user' && (
+                      <button
+                        onClick={() => handlePromote(user.userid)}
+                        className="bg-green-500 text-white px-2 py-1 rounded-md hover:bg-green-600"
+                      >
+                        Promote
+                      </button>
+                    )}
+                    {user.role === 'admin' && (
+                      <button
+                        onClick={() => handleDemote(user.userid)}
+                        className="bg-yellow-500 text-white px-2 py-1 rounded-md hover:bg-yellow-600"
+                      >
+                        Demote
+                      </button>
+                    )}
+                    {user.role === 'pending' && (
+                      <button
+                        onClick={() => handleApprove(user.userid)}
+                        className="bg-blue-500 text-white px-2 py-1 rounded-md hover:bg-blue-600"
+                      >
+                        Approve
+                      </button>
+                    )}
                     <button
-                      onClick={() => handlePromote(user.id)}
-                      className="bg-green-500 text-white px-2 py-1 rounded-md hover:bg-green-600"
+                      onClick={() => handleDelete(user.userid)}
+                      className="bg-red-500 text-white px-2 py-1 rounded-md hover:bg-red-600"
                     >
-                      Promote
+                      Delete
                     </button>
-                  )}
-                  {user.role === 'Admin' && (
-                    <button
-                      onClick={() => handleDemote(user.id)}
-                      className="bg-yellow-500 text-white px-2 py-1 rounded-md hover:bg-yellow-600"
-                    >
-                      Demote
-                    </button>
-                  )}
-                  {user.role === 'Pending' && (
-                    <button
-                      onClick={() => handleApprove(user.id)}
-                      className="bg-blue-500 text-white px-2 py-1 rounded-md hover:bg-blue-600"
-                    >
-                      Approve
-                    </button>
-                  )}
-                  <button
-                    onClick={() => handleDelete(user.id)}
-                    className="bg-red-500 text-white px-2 py-1 rounded-md hover:bg-red-600"
-                  >
-                    Delete
-                  </button>
-                </td>
-              </tr>
-            ))}
+                  </td>
+                </tr>
+              ))}
           </tbody>
         </table>
       </div>
