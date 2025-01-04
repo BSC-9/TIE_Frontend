@@ -1,15 +1,17 @@
 import React, { useState, useEffect } from "react";
 import TieLogo from "../images/TieLogo.png"; // Adjust the path as needed
 import { useNavigate } from "react-router-dom";
+import BookingDetailsModal from "./modal/BookingDetailsModal";
 
 const UserDashboard = () => {
     const [bookings, setBookings] = useState([]);
-    const [selectedBooking, setSelectedBooking] = useState(null);
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState("bookings"); // Added activeTab for tab control
     const [userData, setUserData] = useState(null);
     const [name, setName] = useState(""); // Name input
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [selectedBooking, setSelectedBooking] = useState(null);
     const [formData, setFormData] = useState({
         customer_name: "",
         mobile_no: "",
@@ -65,40 +67,6 @@ const UserDashboard = () => {
         }
     };
 
-
-    const fetchUserByName = async (name) => {
-        try {
-            const authToken = localStorage.getItem("authToken");
-          setLoading(true);
-          const response = await fetch(`http://localhost:3001/api/data/user/${name}`, {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-              "Authorization": `Bearer ${authToken}`, // If you need an authorization token
-            },
-          });
-    
-          if (!response.ok) {
-            throw new Error("Error fetching user data");
-          }
-    
-          const result = await response.json();
-          setUserData(result); // Set user data for display
-        } catch (error) {
-          console.error("Error:", error);
-          alert("An error occurred while fetching user data.");
-        } finally {
-          setLoading(false);
-        }
-      };
-    
-      const handleSearch = () => {
-        if (name) {
-          fetchUserByName(name);
-        } else {
-          alert("Please enter a name to search");
-        }
-      };
 
     // Fetch all bookings
     useEffect(() => {
@@ -165,7 +133,8 @@ const UserDashboard = () => {
             console.log("Booking details:", data);  // Ensure the data is correct
 
             if (data) {
-                setSelectedBooking(data); // Update the state
+                setSelectedBooking(data);
+                setIsModalOpen(true); // Update the state
                 console.log("Selected Booking state updated:", data);  // Verify state is updated
             } else {
                 console.error("API response does not contain expected data", data);
@@ -223,8 +192,8 @@ const UserDashboard = () => {
                         <button
                             onClick={() => setActiveTab("Direct")}
                             className={`px-8 py-3 text-lg font-medium ${activeTab === "Direct"
-                                    ? "bg-blue-700 text-white"
-                                    : "bg-gray-200 text-black"
+                                ? "bg-blue-700 text-white"
+                                : "bg-gray-200 text-black"
                                 }`}
                         >
                             Direct
@@ -232,8 +201,8 @@ const UserDashboard = () => {
                         <button
                             onClick={() => setActiveTab("Channel")}
                             className={`px-8 py-3 text-lg font-medium ${activeTab === "Channel"
-                                    ? "bg-blue-700 text-white"
-                                    : "bg-gray-200 text-black"
+                                ? "bg-blue-700 text-white"
+                                : "bg-gray-200 text-black"
                                 }`}
                         >
                             Channel
@@ -459,49 +428,35 @@ const UserDashboard = () => {
                                                 <td className="px-4 py-2 border-b">₹{remainingPayment}</td>
                                                 <td className="px-4 py-2 border-b">
                                                     {/* Add View and Delete Buttons here */}
-                                                    <button
-                                                        onClick={() => {
-                                                            console.log('Fetching details for booking ID:', booking.booking_id); // Add this log
-                                                            fetchBookingDetails(booking.booking_id);
-                                                        }}
-                                                        className="px-2 py-1 bg-green-600 text-white rounded"
-                                                    >
-                                                        View
-                                                    </button>
+                                                    <div className="flex space-x-2">
+                                                        <button
+                                                            onClick={() => fetchBookingDetails(booking.booking_id)}
+                                                            className="px-2 py-1 bg-green-600 text-white rounded"
+                                                        >
+                                                            View
+                                                        </button>
 
-                                                    <button
-                                                        onClick={() => deleteBooking(booking.booking_id)}
-                                                        className="px-2 pl-2 py-1 bg-red-600 text-white rounded"
-                                                    >
-                                                        Delete
-                                                    </button>
+                                                        <BookingDetailsModal
+                                                            isOpen={isModalOpen}
+                                                            onClose={() => setIsModalOpen(false)}
+                                                            selectedBooking={selectedBooking}
+                                                        />
+
+                                                        <button
+                                                            onClick={() => deleteBooking(booking.booking_id)}
+                                                            className="px-2 py-1 bg-red-600 text-white rounded"
+                                                        >
+                                                            Delete
+                                                        </button>
+                                                    </div>
+
                                                 </td>
                                             </tr>
                                         );
                                     })}
+
                                 </tbody>
                             </table>
-                        )}
-                        {!loading && selectedBooking && selectedBooking.data && (
-                            <div className="border p-4 mt-4">
-                                <h2 className="text-lg font-bold mb-4">Booking Details</h2>
-                                <div>
-                                    <p><strong>Customer Name:</strong> {selectedBooking.data.customer_name}</p>
-                                    <p><strong>Email:</strong> {selectedBooking.data.email_id}</p>
-                                    <p><strong>Mobile:</strong> {selectedBooking.data.mobile_no}</p>
-                                    <p><strong>Check-in Date:</strong> {selectedBooking.data.check_in_date}</p>
-                                    <p><strong>Check-out Date:</strong> {selectedBooking.data.check_out_date}</p>
-                                    <p><strong>Room Type:</strong> {selectedBooking.data.room_type}</p>
-                                    <p><strong>Special Instructions:</strong> {selectedBooking.data.special_instructions}</p>
-                                    <p><strong>Tariff:</strong> {selectedBooking.data.tariff}</p>
-                                </div>
-                                <button
-                                    onClick={() => setSelectedBooking(null)}
-                                    className="px-4 py-2 bg-blue-600 text-white rounded mt-4"
-                                >
-                                    Back
-                                </button>
-                            </div>
                         )}
                     </div>
                 </div>
