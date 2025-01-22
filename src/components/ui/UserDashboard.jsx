@@ -7,7 +7,7 @@ const UserDashboard = () => {
     const [bookings, setBookings] = useState([]);
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
-    const [activeTab, setActiveTab] = useState("bookings"); // Added activeTab for tab control
+    const [activeTab, setActiveTab] = useState("Direct"); // Added activeTab for tab control
     const [userData, setUserData] = useState(null);
     const [name, setName] = useState(""); // Name input
     const [isModalOpen, setIsModalOpen] = useState(false);
