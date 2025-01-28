@@ -212,6 +212,12 @@ const AdminDashboard = () => {
 
         {/* Profile Icon */}
         <button
+          onClick={() => navigate('')}
+          className="px-4 py-2 bg-[#003B95] text-white rounded-md shadow-md hover:bg-blue-700 transition duration-200"
+        >
+          Statistics
+        </button>
+        <button
           onClick={() => navigate('/UserList')}
           className="px-4 py-2 bg-[#003B95] text-white rounded-md shadow-md hover:bg-blue-700 transition duration-200"
         >
