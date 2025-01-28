@@ -21,15 +21,16 @@ const AdminDashboard = () => {
     check_in_date: "",
     check_out_date: "",
     room_type: "",
-    no_of_rooms: 1,
-    total_pax: 1,
-    tariff: 0,
-    advance_payment: 0,
+    no_of_rooms: "",
+    total_pax: "",
+    tariff: "",
+    advance_payment: "",
     payment_mode: "",
     market_segment: "",
     business_source: "",
-    special_instructions: "None",
-    booking_id: "unique_booking_id", // you can generate unique ID or pass a static one
+    special_instructions: "",
+    booking_id: "unique_booking_id",
+    status: "", // you can generate unique ID or pass a static one
   });
 
   const handleChange = (e) => {
@@ -39,6 +40,15 @@ const AdminDashboard = () => {
       [name]: value,
     }));
   };
+
+  const handleLogout = () => {
+    // Clear user data (e.g., tokens)
+    localStorage.removeItem("authToken"); // Clear token or any other user data
+    sessionStorage.clear(); // Optionally clear session storage as well
+
+    // Redirect to login page
+    navigate("/login");
+};
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -180,14 +190,14 @@ const AdminDashboard = () => {
 
   return (
     <div className="flex flex-col">
-      {/* Logo Section */}
       <div className="flex items-center justify-between p-4">
+        {/* Logo */}
         <div>
           <img src={TieLogo} alt="Tie Logo" className="w-12 h-12" />
         </div>
 
-        {/* Tab Navigation */}
-        <div className="flex items-center justify-center">
+        {/* Centered Tab Navigation */}
+        <div className="absolute left-1/2 transform -translate-x-1/2">
           <div className="flex border rounded-full overflow-hidden">
             <button
               onClick={() => setActiveTab("Direct")}
@@ -210,20 +220,29 @@ const AdminDashboard = () => {
           </div>
         </div>
 
-        {/* Profile Icon */}
-        <button
-          onClick={() => navigate('')}
-          className="px-4 py-2 bg-[#003B95] text-white rounded-md shadow-md hover:bg-blue-700 transition duration-200"
-        >
-          Statistics
-        </button>
-        <button
-          onClick={() => navigate('/UserList')}
-          className="px-4 py-2 bg-[#003B95] text-white rounded-md shadow-md hover:bg-blue-700 transition duration-200"
-        >
-          Users List
-        </button>
+        {/* Profile Icon and Additional Buttons */}
+        <div className="flex items-center space-x-4">
+          <button
+            onClick={() => navigate('')}
+            className="px-4 py-2 bg-[#003B95] text-white rounded-md shadow-md hover:bg-blue-700 transition duration-200"
+          >
+            Statistics
+          </button>
+          <button
+            onClick={() => navigate('/UserList')}
+            className="px-4 py-2 bg-[#003B95] text-white rounded-md shadow-md hover:bg-blue-700 transition duration-200"
+          >
+            Users List
+          </button>
+          <button
+            onClick={handleLogout} // Add your logout logic here
+            className="px-4 py-2 bg-red-600 text-white rounded-md shadow-md hover:bg-red-700 transition duration-200"
+          >
+            Logout
+          </button>
+        </div>
       </div>
+
 
       {/* Main content area */}
       <div className="flex w-full max-w-7xl mt-6 gap-6 justify-between mx-auto">
@@ -296,14 +315,31 @@ const AdminDashboard = () => {
                   onChange={handleChange}
                   className="p-3 border rounded-lg bg-[#E6E6E6]"
                 />
-                <input
-                  type="text"
+                <select
                   name="room_type"
                   value={formData.room_type}
                   onChange={handleChange}
-                  placeholder="Room Type"
-                  className="p-3 border rounded-lg bg-[#E6E6E6]"
-                />
+                  className="p-3 border rounded-lg bg-[#E6E6E6] w-full"
+                >
+                  <option value="" disabled>
+                    Select Room Type
+                  </option>
+                  <option value="Deluxe Double room">Deluxe Double room</option>
+                  <option value="Deluxe Triple room">Deluxe Triple room</option>
+                  <option value="Family room">Family room</option>
+                  <option value="2bedroom apartment">2bedroom apartment</option>
+                  <option value="3bedroom apartment">3bedroom apartment</option>
+                  <option value="2bedroom villa">2bedroom villa</option>
+                  <option value="3bedroom villa">3bedroom villa</option>
+                  <option value="4bedroom villa">4bedroom villa</option>
+                  <option value="7bedroom villa">7bedroom villa</option>
+                  <option value="1bedroom apartment">1bedroom apartment</option>
+                  <option value="Studio apartment">Studio apartment</option>
+                  <option value="Double room with terrace">Double room with terrace</option>
+                  <option value="Standard Double room">Standard Double room</option>
+                  <option value="Standard triple room">Standard triple room</option>
+                </select>
+
                 <input
                   type="number"
                   name="no_of_rooms"
@@ -336,14 +372,25 @@ const AdminDashboard = () => {
                   placeholder="Advance Payment"
                   className="p-3 border rounded-lg bg-[#E6E6E6]"
                 />
-                <input
-                  type="text"
+                <select
                   name="payment_mode"
                   value={formData.payment_mode}
                   onChange={handleChange}
-                  placeholder="Payment Mode"
-                  className="p-3 border rounded-lg bg-[#E6E6E6]"
-                />
+                  className="p-3 border rounded-lg bg-[#E6E6E6] w-full"
+                >
+                  <option value="" disabled>
+                    Select Payment Mode
+                  </option>
+                  <option value="Upi">Upi</option>
+                  <option value="Cash">Cash</option>
+                  <option value="Go-Mmt">Go-Mmt</option>
+                  <option value="Agoda">Agoda</option>
+                  <option value="Not Paid">Not Paid</option>
+                  <option value="Bank Transfer">Bank Transfer</option>
+                  <option value="Card">Card</option>
+                  <option value="Statflexi">Statflexi</option>
+                </select>
+
                 <input
                   type="text"
                   name="market_segment"
@@ -360,6 +407,23 @@ const AdminDashboard = () => {
                   placeholder="Business Source"
                   className="p-3 border rounded-lg bg-[#E6E6E6]"
                 />
+                {/* Status Dropdown */}
+                <div className="mb-4">
+                  <label className="block text-gray-700 font-bold mb-2" htmlFor="status">
+                    Status
+                  </label>
+                  <select
+                    id="status"
+                    name="status"
+                    value={formData.status}
+                    onChange={handleChange}
+                    className="shadow border rounded w-full py-2 px-3 text-gray-700"
+                    required
+                  >
+                    <option value="Pending">Pending</option>
+                    <option value="Confirmed">Confirmed</option>
+                  </select>
+                </div>
                 <textarea
                   name="special_instructions"
                   value={formData.special_instructions}

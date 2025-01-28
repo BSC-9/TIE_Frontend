@@ -21,15 +21,16 @@ const UserDashboard = () => {
         check_in_date: "",
         check_out_date: "",
         room_type: "",
-        no_of_rooms: 1,
-        total_pax: 1,
-        tariff: 0,
-        advance_payment: 0,
+        no_of_rooms: "",
+        total_pax: "",
+        tariff: "",
+        advance_payment: "",
         payment_mode: "",
         market_segment: "",
         business_source: "",
-        special_instructions: "None",
-        booking_id: "unique_booking_id", // you can generate unique ID or pass a static one
+        special_instructions: "",
+        booking_id: "unique_booking_id",
+        status: "", // you can generate unique ID or pass a static one
     });
 
     const handleChange = (e) => {
@@ -106,6 +107,15 @@ const UserDashboard = () => {
         fetchBookings(); // Call the async function inside useEffect
     }, [navigate]);
 
+    const handleLogout = () => {
+        // Clear user data (e.g., tokens)
+        localStorage.removeItem("authToken"); // Clear token or any other user data
+        sessionStorage.clear(); // Optionally clear session storage as well
+
+        // Redirect to login page
+        navigate("/login");
+    };
+
     // Fetch details for a specific booking
     const fetchBookingDetails = async (bookingId) => {
         const authToken = localStorage.getItem("authToken");
@@ -145,38 +155,7 @@ const UserDashboard = () => {
     };
 
 
-    // Delete a booking
-    const deleteBooking = async (bookingId) => {
-        const authToken = localStorage.getItem("authToken");
 
-        if (!authToken) {
-            console.error("No token found, unable to delete booking.");
-            return;
-        }
-
-        try {
-            const response = await fetch(`http://localhost:3001/api/data/${bookingId}`, {
-                method: "DELETE",
-                headers: {
-                    Authorization: `Bearer ${authToken}`,
-                    "Content-Type": "application/json",
-                },
-            });
-
-            if (!response.ok) {
-                console.error("Failed to delete booking:", response.statusText);
-                return;
-            }
-
-            setBookings((prevBookings) =>
-                prevBookings.filter((booking) => booking.booking_id !== bookingId)
-            );
-
-            alert("Booking deleted successfully.");
-        } catch (error) {
-            console.error("Error deleting booking:", error);
-        }
-    };
 
     return (
         <div className="flex flex-col">
@@ -211,18 +190,12 @@ const UserDashboard = () => {
                 </div>
 
                 {/* Profile Icon */}
-                <div>
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="57"
-                        height="57"
-                        viewBox="0 0 57 57"
-                        fill="none"
-                        className="cursor-pointer"
-                    >
-                        <circle cx="28.5" cy="28.5" r="28.5" fill="#003B95" />
-                    </svg>
-                </div>
+                <button
+                    onClick={handleLogout}
+                    className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded"
+                >
+                    Logout
+                </button>
             </div>
 
             {/* Main content area */}
@@ -296,14 +269,31 @@ const UserDashboard = () => {
                                     onChange={handleChange}
                                     className="p-3 border rounded-lg bg-[#E6E6E6]"
                                 />
-                                <input
-                                    type="text"
+                                <select
                                     name="room_type"
                                     value={formData.room_type}
                                     onChange={handleChange}
-                                    placeholder="Room Type"
-                                    className="p-3 border rounded-lg bg-[#E6E6E6]"
-                                />
+                                    className="p-3 border rounded-lg bg-[#E6E6E6] w-full"
+                                >
+                                    <option value="" disabled>
+                                        Select Room Type
+                                    </option>
+                                    <option value="Deluxe Double room">Deluxe Double room</option>
+                                    <option value="Deluxe Triple room">Deluxe Triple room</option>
+                                    <option value="Family room">Family room</option>
+                                    <option value="2bedroom apartment">2bedroom apartment</option>
+                                    <option value="3bedroom apartment">3bedroom apartment</option>
+                                    <option value="2bedroom villa">2bedroom villa</option>
+                                    <option value="3bedroom villa">3bedroom villa</option>
+                                    <option value="4bedroom villa">4bedroom villa</option>
+                                    <option value="7bedroom villa">7bedroom villa</option>
+                                    <option value="1bedroom apartment">1bedroom apartment</option>
+                                    <option value="Studio apartment">Studio apartment</option>
+                                    <option value="Double room with terrace">Double room with terrace</option>
+                                    <option value="Standard Double room">Standard Double room</option>
+                                    <option value="Standard triple room">Standard triple room</option>
+                                </select>
+
                                 <input
                                     type="number"
                                     name="no_of_rooms"
@@ -336,14 +326,25 @@ const UserDashboard = () => {
                                     placeholder="Advance Payment"
                                     className="p-3 border rounded-lg bg-[#E6E6E6]"
                                 />
-                                <input
-                                    type="text"
+                                <select
                                     name="payment_mode"
                                     value={formData.payment_mode}
                                     onChange={handleChange}
-                                    placeholder="Payment Mode"
-                                    className="p-3 border rounded-lg bg-[#E6E6E6]"
-                                />
+                                    className="p-3 border rounded-lg bg-[#E6E6E6] w-full"
+                                >
+                                    <option value="" disabled>
+                                        Select Payment Mode
+                                    </option>
+                                    <option value="Upi">Upi</option>
+                                    <option value="Cash">Cash</option>
+                                    <option value="Go-Mmt">Go-Mmt</option>
+                                    <option value="Agoda">Agoda</option>
+                                    <option value="Not Paid">Not Paid</option>
+                                    <option value="Bank Transfer">Bank Transfer</option>
+                                    <option value="Card">Card</option>
+                                    <option value="Statflexi">Statflexi</option>
+                                </select>
+
                                 <input
                                     type="text"
                                     name="market_segment"
@@ -360,6 +361,23 @@ const UserDashboard = () => {
                                     placeholder="Business Source"
                                     className="p-3 border rounded-lg bg-[#E6E6E6]"
                                 />
+                                {/* Status Dropdown */}
+                                <div className="mb-4">
+                                    <label className="block text-gray-700 font-bold mb-2" htmlFor="status">
+                                        Status
+                                    </label>
+                                    <select
+                                        id="status"
+                                        name="status"
+                                        value={formData.status}
+                                        onChange={handleChange}
+                                        className="shadow border rounded w-full py-2 px-3 text-gray-700"
+                                        required
+                                    >
+                                        <option value="Pending">Pending</option>
+                                        <option value="Confirmed">Confirmed</option>
+                                    </select>
+                                </div>
                                 <textarea
                                     name="special_instructions"
                                     value={formData.special_instructions}
@@ -442,12 +460,6 @@ const UserDashboard = () => {
                                                             selectedBooking={selectedBooking}
                                                         />
 
-                                                        <button
-                                                            onClick={() => deleteBooking(booking.booking_id)}
-                                                            className="px-2 py-1 bg-red-600 text-white rounded"
-                                                        >
-                                                            Delete
-                                                        </button>
                                                     </div>
 
                                                 </td>
